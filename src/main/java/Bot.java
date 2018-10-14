@@ -38,7 +38,7 @@ class Bot {
         }
     }
 
-    private String token;
+    private String pseudo, token;
     private int turn = 1, dimensions, me;
     private boolean[][] map;
     private ArrayList<Tracker> trackers = new ArrayList<>();
@@ -62,6 +62,7 @@ class Bot {
 
     private void connect() throws InterruptedException {
         JSONObject json = get("/connect/" + token);
+        pseudo = json.getString("pseudo");
         TimeUnit.MILLISECONDS.sleep(json.getInt("wait"));
     }
 
@@ -75,7 +76,7 @@ class Bot {
             int x = bot.getInt("x");
             int y = bot.getInt("y");
             String pseudo = bot.getString("pseudo");
-            if (pseudo.equals("Dayblox"))
+            if (pseudo.equals(this.pseudo))
                 me = i;
             trackers.add(new Tracker(x, y));
         }
