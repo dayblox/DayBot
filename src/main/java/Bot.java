@@ -1,12 +1,18 @@
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.awt.*;
+import java.awt.geom.Point2D;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.security.KeyPair;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 class Bot {
@@ -38,18 +44,60 @@ class Bot {
         }
     }
 
+    private class Germe {
+        int x, y, direction, size = 0;
+        ArrayList<Point> sides = new ArrayList<>();
+
+        Germe(int x, int y, int direction) {
+            this.x = x;
+            this.y = y;
+            this.direction = direction;
+            sides.add(new Point(x, y));
+        }
+
+        Germe(int x, int y) {
+            this.x = x;
+            this.y = y;
+            sides.add(new Point(x, y));
+        }
+
+        boolean iterate() {
+            boolean res = false;
+            ArrayList<Point> copy = new ArrayList<>(sides);
+            for (Point p : copy) {
+                sides.remove(p);
+                int x = p.x;
+                int y = p.y;
+                int xn = (x + 1) % dimensions;
+                int yn = (y + 1) % dimensions;
+                int xp = (x == 0 ? dimensions - 1 : x - 1);
+                int yp = (y == 0 ? dimensions - 1 : y - 1);
+                Point[] arr = {new Point(xn, y), new Point(x, yp), new Point(xp, y), new Point(x, yn)};
+                for (Point neighbor : arr) {
+                    if (!voronoi[neighbor.x][neighbor.y]) {
+                        sides.add(neighbor);
+                        voronoi[neighbor.x][neighbor.y] = true;
+                        ++size;
+                        res = true;
+                    }
+                }
+            }
+            return res;
+        }
+    }
+
     private String pseudo, token;
     private int turn = 1, dimensions, me;
-    private boolean[][] map;
+    private boolean[][] map, voronoi;
     private ArrayList<Tracker> trackers = new ArrayList<>();
 
-    Bot(String token) {
-        this.token = token;
+    Bot() {
+        this.pseudo = "DayBot" + ThreadLocalRandom.current().nextInt(10000);
     }
 
     private JSONObject get(String path) {
         HttpClient httpClient = HttpClient.newBuilder().build();
-        HttpRequest request = HttpRequest.newBuilder().uri(URI.create("https://lightningbot.tk/api" + path)).build();
+        HttpRequest request = HttpRequest.newBuilder().uri(URI.create("https://lightningbot.tk/api/test" + path)).build();
         HttpResponse<String> response = null;
         try {
             response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
@@ -61,8 +109,8 @@ class Bot {
     }
 
     private void connect() throws InterruptedException {
-        JSONObject json = get("/connect/" + token);
-        pseudo = json.getString("pseudo");
+        JSONObject json = get("/connect/" + pseudo);
+        token = json.getString("token");
         TimeUnit.MILLISECONDS.sleep(json.getInt("wait"));
     }
 
@@ -94,22 +142,41 @@ class Bot {
 
     private void move() throws InterruptedException {
         Tracker me = trackers.get(this.me);
+        ArrayList<Germe> others = new ArrayList<>();
+        for (int i = 0; i != this.me && i < trackers.size(); ++i) {
+            Tracker t = trackers.get(i);
+            others.add(new Germe(t.x, t.y));
+        }
         int x = me.x;
         int y = me.y;
-        int direction;
         int xn = (x + 1) % dimensions;
-        //int yn = (y + 1) % dimensions;
+        int yn = (y + 1) % dimensions;
         int xp = (x == 0 ? dimensions - 1 : x - 1);
         int yp = (y == 0 ? dimensions - 1 : y - 1);
-        if (!map[xn][y])
-            direction = 0;
-        else if (!map[x][yp])
-            direction = 1;
-        else if (!map[xp][y])
-            direction = 2;
-        else
-            direction = 3;
-        JSONObject json = get("/move/" + token + "/" + direction + "/" + turn++);
+        Germe[] arr = {new Germe(xn, y, 0), new Germe(x, yp, 1), new Germe(xp, y, 2), new Germe(x, yn, 3)};
+        Germe max = arr[0];
+        for (Germe g : arr) {
+            voronoi = new boolean[dimensions][dimensions];
+            for (int i = 0; i < dimensions; ++i)
+                System.arraycopy(map[i], 0, voronoi[i], 0, dimensions);
+            if (!voronoi[g.x][g.y]) {
+                voronoi[g.x][g.y] = true;
+                others = new ArrayList<>();
+                for (int i = 0; i != this.me && i < trackers.size(); ++i) {
+                    Tracker t = trackers.get(i);
+                    others.add(new Germe(t.x, t.y));
+                }
+                while (g.iterate()) {
+                    for (Germe ge : others)
+                        ge.iterate();
+                }
+                if (g.size > max.size)
+                    max = g;
+                System.out.println(g.direction + ": " + g.size);
+            }
+        }
+        System.out.println("MAX: " + max.size);
+        JSONObject json = get("/move/" + token + "/" + max.direction + "/" + turn++);
         TimeUnit.MILLISECONDS.sleep(json.getInt("wait"));
     }
 
