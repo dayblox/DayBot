@@ -143,9 +143,11 @@ class Bot {
     private void move() throws InterruptedException {
         Tracker me = trackers.get(this.me);
         ArrayList<Germe> others = new ArrayList<>();
-        for (int i = 0; i != this.me && i < trackers.size(); ++i) {
-            Tracker t = trackers.get(i);
-            others.add(new Germe(t.x, t.y));
+        for (int i = 0; i < trackers.size(); ++i) {
+            if (i != this.me) {
+                Tracker t = trackers.get(i);
+                others.add(new Germe(t.x, t.y));
+            }
         }
         int x = me.x;
         int y = me.y;
@@ -162,9 +164,11 @@ class Bot {
             if (!voronoi[g.x][g.y]) {
                 voronoi[g.x][g.y] = true;
                 others = new ArrayList<>();
-                for (int i = 0; i != this.me && i < trackers.size(); ++i) {
-                    Tracker t = trackers.get(i);
-                    others.add(new Germe(t.x, t.y));
+                for (int i = 0; i < trackers.size(); ++i) {
+                    if (i != this.me) {
+                        Tracker t = trackers.get(i);
+                        others.add(new Germe(t.x, t.y));
+                    }
                 }
                 while (g.iterate()) {
                     for (Germe ge : others)
