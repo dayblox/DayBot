@@ -2,16 +2,12 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.awt.*;
-import java.awt.geom.Point2D;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.security.KeyPair;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
@@ -73,14 +69,13 @@ class Bot {
                 int xp = (x == 0 ? dimensions - 1 : x - 1);
                 int yp = (y == 0 ? dimensions - 1 : y - 1);
                 Point[] arr = {new Point(xn, y), new Point(x, yp), new Point(xp, y), new Point(x, yn)};
-                for (Point neighbor : arr) {
+                for (Point neighbor : arr)
                     if (!voronoi[neighbor.x][neighbor.y]) {
                         sides.add(neighbor);
                         voronoi[neighbor.x][neighbor.y] = true;
                         ++size;
                         res = true;
                     }
-                }
             }
             return res;
         }
@@ -104,6 +99,7 @@ class Bot {
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
+        assert response != null;
         System.out.println(response.body());
         return new JSONObject(response.body());
     }
@@ -143,12 +139,11 @@ class Bot {
     private void move() throws InterruptedException {
         Tracker me = trackers.get(this.me);
         ArrayList<Germe> others = new ArrayList<>();
-        for (int i = 0; i < trackers.size(); ++i) {
+        for (int i = 0; i < trackers.size(); ++i)
             if (i != this.me) {
                 Tracker t = trackers.get(i);
                 others.add(new Germe(t.x, t.y));
             }
-        }
         int x = me.x;
         int y = me.y;
         int xn = (x + 1) % dimensions;
@@ -164,27 +159,23 @@ class Bot {
             if (!voronoi[g.x][g.y]) {
                 voronoi[g.x][g.y] = true;
                 others = new ArrayList<>();
-                for (int i = 0; i < trackers.size(); ++i) {
+                for (int i = 0; i < trackers.size(); ++i)
                     if (i != this.me) {
                         Tracker t = trackers.get(i);
                         others.add(new Germe(t.x, t.y));
                     }
-                }
-                while (g.iterate()) {
+                while (g.iterate())
                     for (Germe ge : others)
                         ge.iterate();
-                }
                 if (g.size > max.size)
                     max = g;
-                System.out.println(g.direction + ": " + g.size);
             }
         }
-        System.out.println("MAX: " + max.size);
         JSONObject json = get("/move/" + token + "/" + max.direction + "/" + turn++);
         TimeUnit.MILLISECONDS.sleep(json.getInt("wait"));
     }
 
-    public void start() {
+    void start() {
         try {
             connect();
             info();
@@ -196,5 +187,4 @@ class Bot {
             e.printStackTrace();
         }
     }
-
 }
