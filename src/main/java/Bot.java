@@ -164,9 +164,12 @@ class Bot {
                         Tracker t = trackers.get(i);
                         others.add(new Germe(t.x, t.y));
                     }
-                while (g.iterate())
+                boolean iterate = true;
+                while (iterate) {
                     for (Germe ge : others)
                         ge.iterate();
+                    iterate = g.iterate();
+                }
                 if (g.size > max.size)
                     max = g;
             }
