@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 class Bot {
     private class Tracker {
         private int x, y;
+        private boolean dead = false;
 
         Tracker(int x, int y) {
             this.x = x;
@@ -22,7 +23,12 @@ class Bot {
         }
 
         void move(int direction) {
+            if (dead)
+                return;
             switch (direction) {
+                case -2:
+                    dead = true;
+                    break;
                 case 0:
                     x = (x + 1) % dimensions;
                     break;
@@ -139,11 +145,7 @@ class Bot {
     private void move() throws InterruptedException {
         Tracker me = trackers.get(this.me);
         ArrayList<Germe> others = new ArrayList<>();
-        for (int i = 0; i < trackers.size(); ++i)
-            if (i != this.me) {
-                Tracker t = trackers.get(i);
-                others.add(new Germe(t.x, t.y));
-            }
+        resetGermes((ArrayList<Germe>) others);
         int x = me.x;
         int y = me.y;
         int xn = (x + 1) % dimensions;
@@ -159,11 +161,7 @@ class Bot {
             if (!voronoi[g.x][g.y]) {
                 voronoi[g.x][g.y] = true;
                 others = new ArrayList<>();
-                for (int i = 0; i < trackers.size(); ++i)
-                    if (i != this.me) {
-                        Tracker t = trackers.get(i);
-                        others.add(new Germe(t.x, t.y));
-                    }
+                resetGermes(others);
                 for (Germe ge : others)
                     ge.iterate();
                 boolean iterate = true;
@@ -178,6 +176,15 @@ class Bot {
         }
         JSONObject json = get("/move/" + token + "/" + max.direction + "/" + turn++);
         TimeUnit.MILLISECONDS.sleep(json.getInt("wait"));
+    }
+
+    private void resetGermes(ArrayList<Germe> others) {
+        for (int i = 0; i < trackers.size(); ++i)
+            if (i != this.me) {
+                Tracker t = trackers.get(i);
+                if (!t.dead)
+                    others.add(new Germe(t.x, t.y));
+            }
     }
 
     void start() {
