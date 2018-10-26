@@ -8,7 +8,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 class Bot {
@@ -87,18 +86,33 @@ class Bot {
         }
     }
 
-    private String pseudo, token;
+    enum Mode {
+        TEST,
+        RANKED
+    }
+
+    private String pseudo, token, baseURL = "https://lightningbot.tk/api";
     private int turn = 1, dimensions, me;
     private boolean[][] map, voronoi;
+    private Mode mode;
     private ArrayList<Tracker> trackers = new ArrayList<>();
 
-    Bot() {
-        this.pseudo = "DayBot" + ThreadLocalRandom.current().nextInt(10000);
+    Bot(Mode mode, String param) {
+        this.mode = mode;
+        switch (mode) {
+            case RANKED:
+                this.token = param;
+                break;
+            case TEST:
+                this.pseudo = param;
+                this.baseURL += "/test";
+                break;
+        }
     }
 
     private JSONObject get(String path) {
         HttpClient httpClient = HttpClient.newBuilder().build();
-        HttpRequest request = HttpRequest.newBuilder().uri(URI.create("https://lightningbot.tk/api/test" + path)).build();
+        HttpRequest request = HttpRequest.newBuilder().uri(URI.create(baseURL + path)).build();
         HttpResponse<String> response = null;
         try {
             response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
@@ -111,8 +125,14 @@ class Bot {
     }
 
     private void connect() throws InterruptedException {
-        JSONObject json = get("/connect/" + pseudo);
-        token = json.getString("token");
+        JSONObject json;
+        if (mode.equals(Mode.RANKED)) {
+            json = get("/connect/" + token);
+            pseudo = json.getString("pseudo");
+        } else {
+            json = get("/connect/" + pseudo);
+            token = json.getString("token");
+        }
         TimeUnit.MILLISECONDS.sleep(json.getInt("wait"));
     }
 
