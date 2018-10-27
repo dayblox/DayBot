@@ -1,4 +1,8 @@
 import java.awt.*;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 
 class Check {
@@ -91,6 +95,15 @@ class Check {
     }
 
     public static void main(String[] args) {
-        check(16, "5 12,1 8,6 2");
+        String filename = "C:\\Users\\Raph\\Downloads\\comment.txt";
+        try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
+            String sCurrentLine;
+            while ((sCurrentLine = br.readLine()) != null) {
+                System.out.println(sCurrentLine);
+                check(32, sCurrentLine);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
