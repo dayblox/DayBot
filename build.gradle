@@ -14,7 +14,8 @@ dependencies {
 
 jar {
     manifest {
-        attributes('Main-Class': 'Display')
+        attributes('Main-Class': 'Main')
+        exclude("Display*", "Check*")
         // 'Class-Path': configurations.runtimeClasspath.files.collect { it.absolutePath }.join(' '))
     }
     from {
