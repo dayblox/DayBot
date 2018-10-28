@@ -4,13 +4,16 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 
 class Check {
     static int dimensions;
     static boolean[][] map;
 
     static class Germe {
-        int x, y, size = 1;
+        int x, y, size = 1, amp;
         ArrayList<Point> sides = new ArrayList<>();
 
         Germe(int x, int y) {
@@ -43,15 +46,8 @@ class Check {
         }
     }
 
-    static void check(int dim, String input) {
+    static float check(int dim, ArrayList<Germe> germes) {
         dimensions = dim;
-        String[] players = input.split(",");
-        ArrayList<Germe> germes = new ArrayList<>();
-        for (String player : players) {
-            String[] positions = player.split(" ");
-            Germe germe = new Germe(Integer.parseInt(positions[0]), Integer.parseInt(positions[1]));
-            germes.add(germe);
-        }
         ArrayList<Germe> germes2 = new ArrayList<>(germes.size());
         map = new boolean[dimensions][dimensions];
         for (int i = 0; i < germes.size(); ++i) {
@@ -89,18 +85,40 @@ class Check {
                 min = f;
             if (f > max)
                 max = f;
-            System.out.print(f + " ");
         }
-        System.out.println("- " + (max - min));
+        return max - min;
+    }
+
+    public static class Tuple<X, Y> {
+        final X x;
+        final Y y;
+
+        Tuple(X x, Y y) {
+            this.x = x;
+            this.y = y;
+        }
     }
 
     public static void main(String[] args) {
-        String filename = "C:\\Users\\Raph\\Downloads\\comment.txt";
+        String filename = "C:\\Users\\Raph\\Downloads\\20.txt";
+        int dim = 64;
         try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
-            String sCurrentLine;
-            while ((sCurrentLine = br.readLine()) != null) {
-                System.out.println(sCurrentLine);
-                check(32, sCurrentLine);
+            String input;
+            ArrayList<Tuple<Float, String>> all = new ArrayList<>();
+            while ((input = br.readLine()) != null) {
+                String[] players = input.split(",");
+                ArrayList<Germe> germes = new ArrayList<>();
+                for (String player : players) {
+                    String[] positions = player.split(" ");
+                    Germe germe = new Germe(Integer.parseInt(positions[0]), Integer.parseInt(positions[1]));
+                    germes.add(germe);
+                }
+                Tuple p = new Tuple(check(dim, germes), input);
+                all.add(p);
+            }
+            Collections.sort(all, (o1, o2) -> (int) (2 * (o2.x - o1.x)));
+            for (int i = 0; i < all.size(); ++i) {
+                System.out.println(all.get(i).y + " - " + all.get(i).x);
             }
         } catch (IOException e) {
             e.printStackTrace();
