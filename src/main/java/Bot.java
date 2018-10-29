@@ -193,6 +193,7 @@ class Bot {
                 if (g.size > max.size)
                     max = g;
             }
+            System.out.println(g.direction + ": " + g.size);
         }
         System.out.println("Chosen: " + max.direction);
         JSONObject json = get("/move/" + token + "/" + max.direction + "/" + turn++);
