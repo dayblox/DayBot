@@ -195,7 +195,7 @@ class Bot {
                     max = g;
             }
         }
-        if (!max.size)
+        if (max.size == 0)
             max.direction = direction;
         else
             direction = max.direction;
