@@ -179,6 +179,7 @@ class Bot {
             for (int i = 0; i < dimensions; ++i)
                 System.arraycopy(map[i], 0, voronoi[i], 0, dimensions);
             if (!voronoi[g.x][g.y]) {
+                ++g.size;
                 voronoi[g.x][g.y] = true;
                 others = new ArrayList<>();
                 resetGermes(others);
