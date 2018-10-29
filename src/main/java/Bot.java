@@ -92,7 +92,7 @@ class Bot {
     }
 
     private String pseudo, token, baseURL = "https://lightningbot.tk/api";
-    private int turn = 1, dimensions, me;
+    private int turn = 1, dimensions, me, direction = 0;
     private boolean[][] map, voronoi;
     private Mode mode;
     private ArrayList<Tracker> trackers = new ArrayList<>();
@@ -194,9 +194,11 @@ class Bot {
                 if (g.size > max.size)
                     max = g;
             }
-            System.out.println(g.direction + ": " + g.size);
         }
-        System.out.println("Chosen: " + max.direction);
+        if (!max.size)
+            max.direction = direction;
+        else
+            direction = max.direction;
         JSONObject json = get("/move/" + token + "/" + max.direction + "/" + turn++);
         TimeUnit.MILLISECONDS.sleep(json.getInt("wait"));
     }
