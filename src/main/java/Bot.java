@@ -194,6 +194,7 @@ class Bot {
                     max = g;
             }
         }
+        System.out.println("Chosen: " + max.direction);
         JSONObject json = get("/move/" + token + "/" + max.direction + "/" + turn++);
         TimeUnit.MILLISECONDS.sleep(json.getInt("wait"));
     }
