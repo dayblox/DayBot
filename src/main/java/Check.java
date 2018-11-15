@@ -1,12 +1,9 @@
 import java.awt.*;
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 
 class Check {
     static int dimensions;
@@ -100,8 +97,8 @@ class Check {
     }
 
     public static void main(String[] args) {
-        String filename = "C:\\Users\\Raph\\Downloads\\20.txt";
-        int dim = 64;
+    String filename = "/home/dayblox/Downloads/12.txt";
+        int dim = 32;
         try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
             String input;
             ArrayList<Tuple<Float, String>> all = new ArrayList<>();
